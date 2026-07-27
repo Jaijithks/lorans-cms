@@ -95,7 +95,7 @@ const buildSortOption = (sort) => {
 };
 
 export const uploadGalleryMedia = async (req, res, next) => {
-  const file = req.file || (req.files && req.files[0]);
+  const file = req.file || (req.files && (Array.isArray(req.files) ? (req.files.find(f => f.fieldname === 'file') || req.files[0]) : req.files['file']?.[0]));
   const { title, description, alt_text } = req.body || {};
 
   try {
