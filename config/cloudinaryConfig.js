@@ -6,15 +6,15 @@ const cloud_name = (process.env.CLOUDINARY_NAME || process.env.CLOUDINARY_CLOUD_
 const api_key = (process.env.CLOUDINARY_API || process.env.CLOUDINARY_API_KEY || '').trim();
 const api_secret = (process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET || '').trim();
 
-if (process.env.CLOUDINARY_URL) {
-  cloudinary.config();
-} else {
+if (cloud_name && api_key && api_secret) {
   cloudinary.config({
     cloud_name,
     api_key,
     api_secret,
     secure: true,
   });
+} else if (process.env.CLOUDINARY_URL) {
+  cloudinary.config();
 }
 
 console.log('Cloudinary initialized:', {
@@ -24,4 +24,5 @@ console.log('Cloudinary initialized:', {
 });
 
 export default cloudinary;
+
 

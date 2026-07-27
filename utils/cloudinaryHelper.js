@@ -24,20 +24,15 @@ export const uploadCloudinaryAsset = async (localPath, mediaType, folder) => {
   const uploadOptions = {
     resource_type: mediaType,
     folder,
-    quality: 'auto',
-    fetch_format: 'auto',
-    transformation: [{ quality: 'auto' }],
   };
 
   if (mediaType === 'video') {
     uploadOptions.eager = [
       {
-        resource_type: 'video',
         width: 640,
         height: 360,
         crop: 'fill',
         format: 'jpg',
-        quality: 'auto',
       },
     ];
   }
