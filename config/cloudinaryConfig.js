@@ -1,28 +1,19 @@
 import { v2 as cloudinary } from 'cloudinary';
-import dotenv from 'dotenv';
-dotenv.config();
+import { CLOUDINARY_NAME, CLOUDINARY_API, CLOUDINARY_API_SECRET } from './config.js';
 
-const cloud_name = (process.env.CLOUDINARY_NAME || process.env.CLOUDINARY_CLOUD_NAME || '').trim();
-const api_key = (process.env.CLOUDINARY_API || process.env.CLOUDINARY_API_KEY || '').trim();
-const api_secret = (process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET || '').trim();
+const cloud_name = (CLOUDINARY_NAME || '').trim();
+const api_key = (CLOUDINARY_API || '').trim();
+const api_secret = (CLOUDINARY_API_SECRET || '').trim();
 
-if (cloud_name && api_key && api_secret) {
-  cloudinary.config({
-    cloud_name,
-    api_key,
-    api_secret,
-    secure: true,
-  });
-} else if (process.env.CLOUDINARY_URL) {
-  cloudinary.config();
-}
-
-console.log('Cloudinary initialized:', {
+cloudinary.config({
   cloud_name,
-  api_key: api_key ? `${api_key.substring(0, 4)}***` : 'MISSING',
-  has_secret: !!api_secret,
+  api_key,
+  api_secret,
+  secure: true,
 });
 
 export default cloudinary;
+
+
 
 
