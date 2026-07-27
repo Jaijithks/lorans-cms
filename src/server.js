@@ -11,12 +11,11 @@ const app = express();
 
 dns.setServers(['1.1.1.1', '8.8.8.8']);
 const PORT = process.env.PORT || 5000;
+
+// Connect Database
 connectDB();
-app.use(express.json());
-app.use((req, res, next) => {
-  console.log('Incoming request:', req.method, req.originalUrl);
-  next();
-});
+
+// Robust CORS Middleware
 app.use((req, res, next) => {
   const allowedOrigins = [
     'http://localhost:5173',
@@ -28,38 +27,47 @@ app.use((req, res, next) => {
   ];
   const origin = req.headers.origin;
 
-  if (!origin || allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin || '*');
+  if (origin) {
+    const cleanOrigin = origin.replace(/\/$/, '');
+    if (allowedOrigins.includes(cleanOrigin) || /\.vercel\.app$/.test(cleanOrigin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
   }
 
-  res.header('Access-Control-Allow-Methods', 'GET,POST,PATCH,PUT,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers'
+  );
+
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
+    return res.status(204).end();
   }
   next();
 });
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use((req, res, next) => {
+  console.log('Incoming request:', req.method, req.originalUrl);
+  next();
+});
+
 app.use('/api', galleryRoutes);
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('CMS Backend API is running');
 });
 
+// Central Error Handler
 app.use(errorHandler);
-
-app.use((err, req, res, next) => {
-  console.error('========== GLOBAL ERROR ==========');
-  console.error(err);
-  if (err.stack) console.error(err.stack);
-
-  return res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Server error',
-    error: err.name || 'Error',
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-  });
-});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-});
+});

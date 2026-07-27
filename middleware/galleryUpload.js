@@ -1,11 +1,15 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
+import os from 'os';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const TEMP_UPLOAD_DIR = path.resolve(__dirname, '../uploads/tmp');
+const TEMP_UPLOAD_DIR = path.join(os.tmpdir(), 'cms-uploads');
+
+try {
+  fs.mkdirSync(TEMP_UPLOAD_DIR, { recursive: true });
+} catch (e) {
+  console.error('Error creating temp upload dir:', e);
+}
 
 const allowedMimeTypes = [
   'image/jpeg',
@@ -28,14 +32,14 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const timestamp = Date.now();
-    const safeName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const safeName = (file.originalname || 'upload').replace(/[^a-zA-Z0-9.-]/g, '_');
     cb(null, `${timestamp}-${safeName}`);
   },
 });
 
 const fileFilter = (req, file, cb) => {
   if (!allowedMimeTypes.includes(file.mimetype)) {
-    const error = new Error('Unsupported media type');
+    const error = new Error(`Unsupported media type: ${file.mimetype}`);
     error.status = 415;
     return cb(error, false);
   }
@@ -50,7 +54,8 @@ const upload = multer({
   fileFilter,
 });
 
-export const gallerySingleUpload = upload.single('file');
+export const gallerySingleUpload = upload.any();
+
 export const multerHandler = (uploadFn) => (req, res, next) => {
   uploadFn(req, res, (err) => {
     if (err) {
@@ -77,3 +82,4 @@ export const cleanTemporaryFile = async (filePath) => {
     // ignore cleanup failures
   }
 };
+

@@ -95,8 +95,8 @@ const buildSortOption = (sort) => {
 };
 
 export const uploadGalleryMedia = async (req, res, next) => {
-  const file = req.file;
-  const { title, description, alt_text } = req.body;
+  const file = req.file || (req.files && req.files[0]);
+  const { title, description, alt_text } = req.body || {};
 
   try {
     const validationErrors = validateUploadFields({ title, file });
@@ -115,7 +115,9 @@ export const uploadGalleryMedia = async (req, res, next) => {
 
     validateFileSize(file, media_type);
 
+    console.log(`Uploading file to Cloudinary: ${file.path}, mediaType: ${media_type}`);
     const uploadResult = await uploadCloudinaryAsset(file.path, media_type, getCloudFolder(media_type));
+    console.log('Cloudinary upload success:', uploadResult.public_id);
 
     const payload = buildGalleryPayload({
       title,
@@ -137,6 +139,7 @@ export const uploadGalleryMedia = async (req, res, next) => {
       data: galleryItem,
     });
   } catch (error) {
+    console.error('Upload Gallery Error:', error);
     await cleanTemporaryFile(file?.path);
     return next(error);
   }
