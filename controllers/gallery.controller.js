@@ -205,7 +205,16 @@ export const deleteGallery = async (req, res, next) => {
       throw error;
     }
 
-    await deleteCloudinaryAsset(item.public_id, item.media_type);
+    if (item.public_id) {
+      try {
+        console.log(`Deleting Cloudinary asset: ${item.public_id}, type: ${item.media_type}`);
+        const result = await deleteCloudinaryAsset(item.public_id, item.media_type);
+        console.log('Cloudinary delete result:', result);
+      } catch (cloudinaryError) {
+        console.error('Warning: Cloudinary asset deletion failed:', cloudinaryError.message || cloudinaryError);
+      }
+    }
+
     await item.deleteOne();
 
     return res.json({
@@ -217,3 +226,4 @@ export const deleteGallery = async (req, res, next) => {
     return next(error);
   }
 };
+
